@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-#https://github.com/lining0806/Spider_Python/blob/master/WallstreetcnSaveTest.py
+#原地址：https://github.com/lining0806/Spider_Python/blob/master/WallstreetcnSaveTest.py
 
 import sys
 import re

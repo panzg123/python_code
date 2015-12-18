@@ -1,43 +1,119 @@
 #encoding:utf-8
-'''
-Created on
+from flask import render_template, flash, redirect, session, url_for, request, g
+from flask_login import login_user, logout_user, current_user, login_required
+from app import app, db, lm, oid
+from forms import LoginForm,EditForm
+from models import User, ROLE_USER, ROLE_ADMIN
+from datetime import datetime
 
-@author: pan
-'''
+@lm.user_loader
+def load_user(id):
+    return User.query.get(int(id))
 
-from app import app
-from flask.templating import render_template
-from forms import LoginForm
-from flask.helpers import flash
-from flask import redirect
+@app.before_request
+def before_request():
+    g.user = current_user
+    #更新用户访问时间
+    if g.user.is_authenticated:
+        g.user.last_seen = datetime.utcnow()
+        db.session.add(g.user)
+        db.session.commit()
+
+#显示用户信息
+@app.route('/user/<nickname>')
+#@login_required
+def user(nickname):
+    print 'route user'
+    user = User.query.filter_by(nickname=nickname).first()
+    #验证是否有该用户
+#     if user=None:
+#         flash('User'+nickname+'is not found')
+#         return redirect(url_for('index'))
+    posts=[
+           {'author':user,'body':'Test post #1'},
+           {'author':user,'body':'Test post #2'}
+    ]
+    return render_template('user.html',
+        user=user,
+        posts=posts)
+
 @app.route('/')
 @app.route('/index')
+@login_required
 def index():
-    user = { 'nickname': 'Miguel' } # fake user
-    posts = [ # fake array of posts
-        {
-            'author': { 'nickname': 'John' },
-            'body': 'Beautiful day in P  ortland!'
+    user = g.user
+    posts = [
+        { 
+            'author': { 'nickname': 'John' }, 
+            'body': 'Beautiful day in Portland!' 
         },
-        {
-            'author': { 'nickname': 'Susan' },
-            'body': 'The Avengers movie was so cool!'
+        { 
+            'author': { 'nickname': 'Susan' }, 
+            'body': 'The Avengers movie was so cool!' 
         }
     ]
-    return render_template("index.html",
+    return render_template('index.html',
         title = 'Home',
         user = user,
         posts = posts)
 
 @app.route('/login', methods = ['GET', 'POST'])
+@oid.loginhandler
 def login():
-    form = LoginForm()#实例化一个表单对象，传递给模板，然后渲染表单
-    #验证表单数据，所有验证都通过，将返回TRUE
+    if g.user is not None and g.user.is_authenticated:
+        print 'login success'
+        return redirect(url_for('index'))
+    form = LoginForm()
     if form.validate_on_submit():
-        #flash 函数是一种快速的方式下呈现给用户的页面上显示一个消息
-        flash('Login requested for OpenID=" ' + form.openid.data+' ", remember_me=' + str(form.remember_me.data))
-        return redirect('/index')
-    return render_template('login.html',
+        print 'validate_on_submit --> try_login'
+        session['remember_me'] = form.remember_me.data
+        return oid.try_login(form.openid.data, ask_for = ['nickname', 'email'])
+    print 'login_render_template'
+    return render_template('login.html', 
         title = 'Sign In',
         form = form,
         providers = app.config['OPENID_PROVIDERS'])
+
+@oid.after_login
+def after_login(resp):
+    if resp.email is None or resp.email == "":
+        flash('Invalid login. Please try again.')
+        return redirect(url_for('login'))
+    user = User.query.filter_by(email = resp.email).first()
+    if user is None:
+        nickname = resp.nickname
+        if nickname is None or nickname == "":
+            nickname = resp.email.split('@')[0]
+        user = User(nickname = nickname, email = resp.email, role = ROLE_USER)
+        db.session.add(user)
+        db.session.commit()
+    remember_me = False
+    if 'remember_me' in session:
+        remember_me = session['remember_me']
+        session.pop('remember_me', None)
+    login_user(user, remember = remember_me)
+    return redirect(request.args.get('next') or url_for('index'))
+
+@app.route('/logout')
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
+
+
+#处理用户编辑信息的表单
+@app.route('/edit',methods=['GET','POST'])
+@login_required
+def edit():
+    form = EditForm()
+    if form.validate_on_submit():
+        g.user.nickname=form.nickname.data
+        g.user.about_me=form.about_me.data
+        db.session.add(g.user)
+        db.session.commit()
+        flash('Your changes have been saved')
+        return redirect('edit.html')
+    #信息验证未成功
+    else:
+        form.nickname.data = g.user.nickname
+        form.about_me.data = g.user.about_me
+    return render_template('edit.html', form=form)

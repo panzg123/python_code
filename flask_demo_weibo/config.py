@@ -1,3 +1,4 @@
+#encoding:utf-8
 #激活跨站点请求伪造保护
 CSRF_ENABLED = True
 #用来建立加密令牌
@@ -9,3 +10,10 @@ OPENID_PROVIDERS = [
     { 'name': 'AOL', 'url': 'http://openid.aol.com/<username>' },
     { 'name': 'Flickr', 'url': 'http://www.flickr.com/<username>' },
     { 'name': 'MyOpenID', 'url': 'https://www.myopenid.com' }]
+
+import os
+basedir=os.path.abspath(os.path.dirname(__file__))
+#数据库文件的路径
+SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'app.db')
+#REPO是文件夹，将SQLAlchemy-migrate数据文件存储在这里
+SQLALCHEMY_MIGRATE_REPO = os.path.join(basedir, 'db_repository')

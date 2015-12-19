@@ -17,3 +17,12 @@ basedir=os.path.abspath(os.path.dirname(__file__))
 SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'app.db')
 #REPO是文件夹，将SQLAlchemy-migrate数据文件存储在这里
 SQLALCHEMY_MIGRATE_REPO = os.path.join(basedir, 'db_repository')
+
+#通过email发送错误日志，下面配置email参数
+MAIL_SERVER='localhost'
+MAIL_PORT=25
+MAIL_USERNAME=None
+MAIL_PASSWORD=None
+
+#administrator
+ADMINS=['you@example.com']

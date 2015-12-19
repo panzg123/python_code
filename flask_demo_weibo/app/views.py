@@ -104,7 +104,7 @@ def logout():
 @app.route('/edit',methods=['GET','POST'])
 @login_required
 def edit():
-    form = EditForm()
+    form = EditForm(g.user.nickname)#传入用户昵称
     if form.validate_on_submit():
         g.user.nickname=form.nickname.data
         g.user.about_me=form.about_me.data
@@ -117,3 +117,13 @@ def edit():
         form.nickname.data = g.user.nickname
         form.about_me.data = g.user.about_me
     return render_template('edit.html', form=form)
+
+#定制的错误处理器，404
+@app.errorhandler(404)
+def not_found_error():
+    return render_template('404.html'),404
+
+#定制的错误处理器，500
+@app.error_handler(500)
+def internal_error():
+    return render_template('500.html'),500

@@ -87,6 +87,9 @@ def after_login(resp):
         user = User(nickname = nickname, email = resp.email, role = ROLE_USER)
         db.session.add(user)
         db.session.commit()
+        #设置为自己关注自己
+        db.session.add(user.follow(user))
+        db.session.commit()
     remember_me = False
     if 'remember_me' in session:
         remember_me = session['remember_me']
@@ -124,6 +127,32 @@ def not_found_error():
     return render_template('404.html'),404
 
 #定制的错误处理器，500
-@app.error_handler(500)
+@app.errorhandler(500)
 def internal_error():
     return render_template('500.html'),500
+
+#处理关注连接
+@app.route('/follow/<nickname>')
+@login_required
+def follow(nickname):
+    user = User.query.filter_by(nickname=nickname).first()
+    if user is None:
+        flash('User %s not found.'% nickname)
+        redirect(url_for('index'))
+        
+    if user==g.user:
+        flash('you cannot follow yourself')
+        redirect(url_for('user',nickname=nickname))
+    u=g.user.follow(user)
+    if u is None:
+        flash('Cannot follow '+nickname+'.')
+        return redirect(url_for('user',nickname=nickname))
+    db.session.add(u)
+    db.session.commit()
+    flash('you are now following '+nickname+'.')
+    return redirect(url_for('user',nickname=nickname))
+        
+#处理取消关注连接
+@app.route('/unfollow/<nickname>')
+@login_required
+    

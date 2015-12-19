@@ -5,9 +5,16 @@ Created on 2015年12月17日
 @author: pan
 '''
 from app import db
-
+from sqlalchemy.orm import backref
+from hashlib import md5
 ROLE_USER = 0
 ROLE_ADMIN = 1
+
+#辅助表，来记录关注者与被关注者
+followers=db.Table('followers',
+    db.Column('follower_id',db.Integer,db.ForeignKey('user.id')),
+    db.Column('followed_id',db.Integer,db.ForeignKey('user.id'))
+)
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key = True)
@@ -17,6 +24,14 @@ class User(db.Model):
     posts = db.relationship('Post', backref = 'author', lazy = 'dynamic')
     about_me = db.Column(db.String(140))
     last_seen = db.Column(db.DateTime)
+    #定义一个多对多的关系
+    followed = db.relationship('User', #连接User实例到其他User实例上
+        secondary=followers,           #指明了这种关系的辅助表followers
+        primaryjoin=(followers.c.follower_id==id),#条件
+        secondaryjoin = (followers.c.followed_id == id),#条件
+        backref =db.backref('followers', lazy = 'dynamic'),
+        lazy = 'dynamic'
+    )
     
     @property
     def is_authenticated(self):
@@ -51,6 +66,23 @@ class User(db.Model):
                 break
             version+=1
         return new_nickname
+    #添加关注者
+    def follow(self,user):
+        if not self.is_following(user):
+            self.followed.append(user)
+            return self
+    #移除关注者
+    def unfollow(self,user):
+        if self.is_following(user):
+            self.followed.remove(user)
+            return self
+    #判断是否关注
+    def is_following(self,user):
+        return self.followed.filter(followers.c.followed_id == user.id).count()>0
+    
+    #查询关注者的微博,先连接post与follwers表，然后过滤，最后排序，http://www.pythondoc.com/flask-mega-tutorial/followers.html
+    def followed_posts(self):
+        return Post.query.join(followers,(followers.c.followed_id == Post.user_id)).filter(followers.c.follower_id == self.id).order_by(Post.timestamp.desc())
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     body = db.Column(db.String(140))

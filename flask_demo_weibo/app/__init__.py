@@ -40,4 +40,7 @@ if not app.debug:
     file_handler.setLevel(logging.INFO)
     app.logger.addHandler(file_handler)
     app.logger.info('microblog startup')
-    
+
+#初始化Mial实例，这个对象为我们连接到SMTP服务器并且发送邮件
+from flask_mail import Mail
+mail=Mail(app)

@@ -1,7 +1,5 @@
-Flasky
-======
+《flask web开发》
+=======================
+项目实践，支持微博的关注，发博文，评论等功能，更新至第十三章
 
-This repository contains the source code examples for my O'Reilly book [Flask Web Development](http://www.flaskbook.com).
-
-The commits and tags in this repository were carefully created to match the sequence in which concepts are presented in the book. Please read the section titled "How to Work with the Example Code" in the book's preface for instructions.
-
+原文地址：https://github.com/miguelgrinberg/flasky 

@@ -9,3 +9,4 @@
 * [2015-12-27] flasky_weibo,《flask web开发》项目实践
 * [2016-01-14] utf2ansi，遍历文件夹，utf与GBK转换，方便sourceInsight阅读源代码
 * [2016-03-02] excel/excel_read_demo & excel/write_csv，读写xls和csv文件，方便进行数据处理
+* [2016-03-03] python_learn/mysql/csv_mysql,读取csv文件数据，导入mysql数据库

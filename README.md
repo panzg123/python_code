@@ -10,3 +10,4 @@
 * [2016-01-14] utf2ansi，遍历文件夹，utf与GBK转换，方便sourceInsight阅读源代码
 * [2016-03-02] excel/excel_read_demo & excel/write_csv，读写xls和csv文件，方便进行数据处理
 * [2016-03-03] python_learn/mysql/csv_mysql,读取csv文件数据，导入mysql数据库
+* [2016-03-03] zhihu_topic.py 爬取知乎首页，话题广场中所有话题，原作者：[akiyama](http://www.akiyamayzw.com/%E7%88%AC%E8%99%AB%E8%8E%B7%E5%8F%96%E7%9F%A5%E4%B9%8E%E8%AF%9D%E9%A2%98/)
